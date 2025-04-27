@@ -1,0 +1,6 @@
+[submodule "portfolio-tracker"]
+	path = portfolio-tracker
+	url = git@github.com:paulobueno/portfolio-tracker.git
+[submodule "portfolio-data-collector"]
+	path = portfolio-data-collector
+	url = git@github.com:paulobueno/portfolio-data-collector.git
