@@ -34,6 +34,21 @@ services:
     networks:
       - app-network
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+  airflow-init:
+    image: apache/airflow:3.0.0
+    container_name: airflow-init
+    env_file:
+      - .env.portfolio-data-collector
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - airflow_dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - airflow_plugins:/opt/airflow/plugins
+    command: bash -c "airflow db migrate && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
+    networks:
+      - app-network
   airflow-webserver:
     image: apache/airflow:3.0.0
     container_name: airflow-webserver
@@ -52,33 +67,22 @@ services:
     restart: always
     networks:
       - app-network
-  airflow-init:
+  airflow-scheduler:
     image: apache/airflow:3.0.0
-    container_name: airflow-init
-    env_file:
-      - .env.portfolio-data-collector
+    container_name: airflow-scheduler
+    command: airflow scheduler
     depends_on:
       mysql:
         condition: service_healthy
-    command: >
-      # bash -c "airflow db migrate && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com"
-      bash -c "echo HERE"
-
-        #  airflow-scheduler:
-        #    image: apache/airflow:2.8.3
-        #    container_name: airflow-scheduler
-        #    depends_on:
-        #      - mysql
-        #      - airflow-webserver
-        #    env_file:
-        #      - ./portfolio-data-collector/.env
-        #    volumes:
-        #      - ./airflow/dags:/opt/airflow/dags
-        #      - ./airflow/logs:/opt/airflow/logs
-        #      - ./airflow/plugins:/opt/airflow/plugins
-        #    restart: always
-        #    networks:
-        #      - app-network
+    env_file:
+      - .env.portfolio-data-collector
+    volumes:
+      - airflow_dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - airflow_plugins:/opt/airflow/plugins
+    restart: always
+    networks:
+      - app-network
 
 networks:
   app-network:
